@@ -6,12 +6,35 @@
         <!-- <link rel="stylesheet" href="style/style.css"> -->
         <script src="js/Loader.js"></script>
         <script src="js/Kirin.js"></script>
-        <script src="js/lodash.js"></script>
+        <script src="js/Router.js"></script>
     </head>
     <body>
         <script>
-            Kirin()
-            KirinDOM.render()
+            let router = new Router();
+            console.log("1. current = ", router.current);
+            console.log("2. state = ", router.state);
+            console.log("3. location = ", router.location);
+            console.log("4. history = ", router.history);
+            console.log("5. length = ", router.length);
+
+            router.push('google.com');
+            router.push('https://google.com');
+
+            console.log("6. history = ", router.history);
+            console.log("7. current = ", router.current);
+
+            router.replace('yandex.ru', {state: 'state'});
+
+            console.log("8. current = ", router.current);
+            console.log("9. state = ", router.state);
+
+            router.goBack();
+            router.setState({state: 'new State'})
+
+            console.log("10. current = ", router.current);
+            console.log("11. state = ", router.state);
+
+            console.log("12. history = ", router.history);
         </script>
         <div id='root'></div>
     </body>
