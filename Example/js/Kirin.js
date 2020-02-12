@@ -8,7 +8,7 @@ function isEventSupported(eventName){
     if(eventName in window){
         isSupported = true;
     } else if(('on' + evN) in window) {
-        isSupported = 'on' + evN;
+        evN = 'on' + evN;
     } else {
         let el = document.body;
         isSupported = (evN in el);
@@ -21,50 +21,88 @@ function isEventSupported(eventName){
         }
     }
 
-    return isSupported;
+    return {
+        name: evN,
+        isSupported
+    };
 }
 
-function createDOMComponent(el) {
-    let el = document.createElement(type);
-    if(attr !== null){
-        Object
-            .keys(attr)
-            .forEach((at) => {
-                let value = attr[at];
+function renameKeywords(key){
+    switch(key){
+        case 'className':
+            return 'class';
+        default:
+            return key;
+    }
+}
 
-                if(at === 'className'){
-                    el.setAttribute('class', value)
-                } else {
-                    el.setAttribute(at, value);
-                }
+function createDOMComponent(elemConfig) {
+    let el;
+    let { type, props, children } = elemConfig;
+
+    if(typeof type === 'function'){
+        el = disassembleСomponent(elemConfig);
+    } else {
+        el = document.createElement(type);
+        if(props){
+            Object
+                .keys(props)
+                .forEach((key) => {
+                    let value = props[key];
+                    let event;
+                    
+                    if(event = isEventSupported(key)){
+                        if(typeof event.isSupported){
+                            el[event.name] = value;
+                        } else {
+                            el[key] = value;
+                            console.log(key, ' = ', value)
+                        }
+                    } else {
+                        const reformedKey = renameKeywords(key);
+                        el.setAttribute(reformedKey, value);
+                    }
+                })
+        }
+
+        if(children){
+            children.forEach(child => {
+                let node;
+    
+                if(typeof child === 'string'){
+                    node = document.createTextNode(children);
+                } else if(typeof child.type === 'string'){
+                    node = createDOMComponent(child);
+                } else if(typeof child.type === 'function'){
+                    node = disassembleСomponent(child);
+                };
+    
+                el.appendChild(node)
             })
+        }
     }
 
-    if(typeof child === 'string'){
-        child = document.createTextNode(child);
-    }
-
-    if(child !== null){
-        el.appendChild(child);
-    }
-
-    createDOMComponent.mount = function (el, container) {
-        container.appendChild(el)
-    }
+    return el;
+}
+createDOMComponent.mount = function (el, container) {
+    container.appendChild(el)
 }
 
-function CompositeComponentWrapper(el, container) {
+function disassembleСomponent(el) {
     const Component = el.type;
     const componentInstance = new Component(el.props);
-    const element = componentInstance.render();
 
-    // while (typeof element.type === 'function') {
-    //     element = (new element.type(element.props)).render();
-    // }
+    let element = componentInstance.render();
 
-    const domComponentInstance = createDOMComponent(element);
-    return createDOMComponent.mount(domComponentInstance, container);
+    if (typeof element.type === 'function') {
+        element = disassembleСomponent(element);
+    } else if(typeof element.type === 'string'){
+        element = createDOMComponent(element);
+    }
+
+    return element;
 }
+
 /*lib*/
 const Kirin = {
     createElement(type, props, ...children){
@@ -74,7 +112,7 @@ const Kirin = {
         };
 
         if (children[0]) {
-            element.props.children = children;
+            element.children = children;
         }
 
         return element;
@@ -98,54 +136,3 @@ const Kirin = {
         return createDOMComponent.mount(el, container)
     }
 };
-
-
-// const TopLevelWrapper = function(props) {
-//     this.props = props;
-// };
-//
-// TopLevelWrapper.prototype.render = function() {
-//     return this.props;
-// };
-// const wrapperElement = this.createElement(TopLevelWrapper, element);
-
-
-const MyTitle = Kirin.createClass({
-    render() {
-        return Kirin.createElement('h1', null, this.props.message);
-    }
-});
-
-Kirin.render(
-    Kirin.createElement(MyTitle, { message: 'hey there Feact' }),
-    document.getElementById('root')
-);
-
-// React.createClass({
-//     getInitialState() {
-//         return {
-//             checked: false,
-//         };
-//     },
-//
-//     toggleChecked() {
-//         this.setState((prevState) => (
-//             { checked: !prevState.checked }
-//         ));
-//     },
-//
-//     render() {
-//         const className = this.state.checked ?
-//             'toggle checkbox checked' : 'toggle checkbox';
-//         return (
-//             <div className={className}>
-//             <input
-//         type='checkbox'
-//         name='public'
-//         onClick={this.toggleChecked}
-//             >
-//             <label>Subscribe to weekly newsletter</label>
-//         </div>
-//     );
-//     }
-// });

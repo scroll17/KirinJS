@@ -46,22 +46,26 @@
             }
         
             function showKirin(){
-                let el = Kirin.createElement(
-                    'div',
-                    {
-                        className: 'test',
-                        id: 'test'
-                    },
-                    Kirin.createElement(
-                        'a',
-                        {
-                            style: 'color:red;'
-                        },
-                        'test'
-                    )
-                );
+                let div = (...child) => Kirin.createElement('div', null, ...child);
+                let h1 = (child) => Kirin.createElement('h1', null, child);
+                let component = (type, prop) => Kirin.createElement(type, prop);
 
-                Kirin.render(el, document.getElementById('root'));
+                const Body = Kirin.createClass({
+                    render() {
+                        return div(h1('Body'))
+                    }
+                });
+
+                const Head = Kirin.createClass({
+                    render() {
+                        return div(h1(this.props.text), h1('test'), component(Body))
+                    }
+                });
+
+                Kirin.render(
+                    component(Head, { text: 'this props' }),
+                    document.getElementById('root')
+                );
             }
         </script>
         <div id='root'>
