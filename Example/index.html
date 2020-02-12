@@ -46,10 +46,8 @@
             }
         
             function showKirin(){
-                Kirin.createRef(document.getElementById('root'))
-
-                Kirin.createElement(
-                    'div', 
+                let el = Kirin.createElement(
+                    'div',
                     {
                         className: 'test',
                         id: 'test'
@@ -57,13 +55,13 @@
                     Kirin.createElement(
                         'a',
                         {
-                            style:'color:red;'
+                            style: 'color:red;'
                         },
                         'test'
                     )
-                )
+                );
 
-                Kirin.render();
+                Kirin.render(el, document.getElementById('root'));
             }
         </script>
         <div id='root'>
