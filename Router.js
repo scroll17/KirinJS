@@ -79,21 +79,16 @@ class Router {
         }
     }
 
-    _setThis(obj, recursive = false){
+    _setThis(obj){
         Object
             .keys(obj)
             .forEach(p => {
                 let value = obj[p];
-                if(value instanceof Object){
-                    this._setThis(value, true);
-                }
 
                 this[p] = value;
             })
 
-        if(!recursive){
-            return this._omit(this, this._privateFields);
-        }
+        return this._omit(this, this._privateFields);
     }
 
     _setNewHref(href){
@@ -121,10 +116,6 @@ class Router {
             path = window.location.protocol + '//' + path;
         }
         return path;
-    }
-
-    assign(url){
-        return window.location.assign(url)
     }
 
     reload(forcedReload = false, callback){
@@ -172,7 +163,6 @@ class Router {
 
     go(n){
         if(n < 0 && (this._current + n) >= 0){
-            console.log('n - ',  this._current + n)
             this._current = this._current + n; 
             
             this._setNewHref(
@@ -204,7 +194,6 @@ class Router {
         }
     }
 
-    // TODO need fix
     goBack(){
         if(this._current > 1){
             let newThis = this._history[--this._current];
@@ -240,9 +229,11 @@ class Router {
     setState(value){
         if(typeof value === 'object'){
             this.location.state = JSON.stringify(value)
+            this._history[this._current].location.state = JSON.stringify(value);
             return value;
         } else if(typeof value === 'string'){
-            this.location.state = value
+            this.location.state = value;
+            this._history[this._current].location.state = value;
             return JSON.parse(value);
         } else {
             return;
