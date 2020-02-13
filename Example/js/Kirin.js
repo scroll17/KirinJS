@@ -44,6 +44,7 @@ function createDOMComponent(elemConfig) {
         el = disassembleСomponent(elemConfig);
     } else {
         el = document.createElement(type);
+
         if(props){
             Object
                 .keys(props)
@@ -71,11 +72,9 @@ function createDOMComponent(elemConfig) {
     
                 if(typeof child === 'string'){
                     node = document.createTextNode(children);
-                } else if(typeof child.type === 'string'){
+                } else {
                     node = createDOMComponent(child);
-                } else if(typeof child.type === 'function'){
-                    node = disassembleСomponent(child);
-                };
+                }
     
                 el.appendChild(node)
             })
@@ -86,7 +85,7 @@ function createDOMComponent(elemConfig) {
 }
 createDOMComponent.mount = function (el, container) {
     container.appendChild(el)
-}
+};
 
 function disassembleСomponent(el) {
     const Component = el.type;
@@ -94,9 +93,7 @@ function disassembleСomponent(el) {
 
     let element = componentInstance.render();
 
-    if (typeof element.type === 'function') {
-        element = disassembleСomponent(element);
-    } else if(typeof element.type === 'string'){
+    if(element){
         element = createDOMComponent(element);
     }
 
