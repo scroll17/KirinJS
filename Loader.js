@@ -1,4 +1,4 @@
-export default class Loader {
+class Loader {
 	constructor(properties){
 		this.headers = new Headers({ 'Content-Type': 'text/plain;charset=UTF-8' });
 		this.proxy = "https://cors-anywhere.herokuapp.com/";
@@ -8,6 +8,7 @@ export default class Loader {
 		let response;
 
 		if(options.proxy){
+			url = url.replace('https://', '');
 			response = await fetch(this.proxy + url, options);
 		} else {
 			response = await fetch(url, options);
@@ -18,7 +19,7 @@ export default class Loader {
 		let responseContent = {};
 		let responseData;
 
-		let contentType;	
+		let contentType = {};
 
 		if(response.headers.has('Content-Type')){
 			let contentType = response.headers.get('Content-Type');
@@ -26,12 +27,12 @@ export default class Loader {
 				contentType.indexOf('/') + 1,
 				contentType.indexOf(';')
 			);
-			responseType.type = contentType.slice(
+			responseContent.type = contentType.slice(
 				0,
 				contentType.indexOf('/')
 			)
 		} else {
-			return Promise.reject("respone headers no has 'Content-Type'")
+			return Promise.reject("response headers no has 'Content-Type'")
 		}
 
 		switch(responseContent.values){
@@ -77,56 +78,63 @@ export default class Loader {
 	}
 
 	_createHeaders(body){
-		if(!options) return Promise.reject(new Error('Body cannot be empty'));
+		if(!body) return Promise.reject(new Error('Body cannot be empty'));
 
-		let headers;
+		let newHeaders;
 		let newBody;
 
 		if(body.__proto__ === Object.prototype){
-			headers = new Headers({
+			newHeaders = new Headers({
 				'Content-Type': 'application/json;charset=utf-8'
 			});
 			newBody = JSON.stringify(body);
 		} else if(body instanceof Blob && blob.type){
-			headers = new Headers({
+			newHeaders = new Headers({
 				'Content-Type': blob.type
 			});
 		} else if (typeof body === 'string'){
-			headers = this.headers
+			newHeaders = this.headers
 		} else {
-			headers = undefined
+			newHeaders = undefined
 		}
 
 		return {
-			headers,
+			newHeaders,
 			newBody
 		};
 	}
 
 	_createOptions(options, method){
-		let { headers, body, proxy } = options;
+		let { headers, body, proxy, credentials, mode } = options;
 
-		if(!header){
-			let { newHeaders, newBody } = _createHeaders(body);
+		let createdOptions = {};
+		if(!headers && method !== 'GET'){
+			let { newHeaders, newBody } = this._createHeaders(body);
 
-			if(!newHeaders){
-				return Promise.reject('Headers cannot be empty');
+			if(newHeaders){
+				headers = newHeaders;
+			} else {
+				headers = undefined;
 			}
 
 			if(newBody){
 				body = newBody
 			}
+
+			createdOptions.body = body;
 		}
 
 		return {
 			method: method,
-			body: body,
-			headers: headers,
-			proxy: proxy || false
+			headers: headers || new Headers(),
+			proxy: proxy || false,
+			credentials: credentials || 'include',
+			mode: mode || 'no-cors',
+			...createdOptions
 		}
 	}
 
-	get(url, options){
+	async get(url, options = {}){
 		if(!options) return Promise.reject(new Error('options required'));
 
 		const loadOpt = this._createOptions(options, 'GET');
@@ -139,27 +147,27 @@ export default class Loader {
 		)
 	}
 
-	post(url, options){
+	async post(url, options){
 		if(!options) return Promise.reject(new Error('options required'));
 
-		const loadOpt = this._createOptions(options, 'POST')
+		const loadOpt = this._createOptions(options, 'POST');
 		return this._load(
 			url,
 			loadOpt
 		)
 	}
 
-	put(url, options){
+	async put(url, options){
 		if(!options) return Promise.reject(new Error('options required'));
 
-		const loadOpt = this._createOptions(options, 'PUT')
+		const loadOpt = this._createOptions(options, 'PUT');
 		return this._load(
 			url,
 			loadOpt
 		)
 	}
 
-	load(options){
+	async load(options){
 		if(!options) return Promise.reject(new Error('options required'));
 		if(!options.url) return Promise.reject(new Error('url required'));
 

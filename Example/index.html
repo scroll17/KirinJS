@@ -47,52 +47,42 @@
 
         
             function showKirin(){
-                let div = (...child) => Kirin.createElement('div', null, ...child);
-                let h1 = (child) => Kirin.createElement('h1', null, child);
-                let component = (type, prop) => Kirin.createElement(type, prop);
+                Kirin.DOMElement.add(['div', 'span', 'h1', 'button']);
+                let el = Kirin.DOMElement;
 
-                const Body = Kirin.createClass({
-                    render() {
-                        return div(h1('Body'))
-                    }
-                });
+                let Component = (type, prop) => Kirin.createElement(type, prop);
 
-                const Head = Kirin.createClass({
-                    render() {
-                        return div(h1(this.props.text), h1('test'), component(Body))
-                    }
-                });
 
                 let TestClass = Kirin.createClass({
-                    getInitialState() {
-                        return {
-                            checked: false,
-                        };
-                    },
-
                     toggleChecked() {
-                        console.log('toggleChecked')
-                        // this.setState((prevState) => (
-                        //     { checked: !prevState.checked }
-                        // ));
+                        this.setState((prevState) => {
+                            return {
+                                checked: !prevState.checked
+                            }
+                        });
                     },
 
                     render() {
-                        return  Kirin.createElement(
-                            'div',
-                            {
-                                onClick: () => this.toggleChecked()
-                            },
-                            'it div'
+                        return (
+                            el.div([
+                                el.button(
+                                    'click',
+                                    {  onClick: () => this.toggleChecked() }
+                                ),
+                                el.h1(
+                                    this.state.checked ? 'true' : 'false'
+                                )
+                            ])
                         );
                     }
                 });
 
                 Kirin.render(
-                    component(TestClass, null),
+                    Component(TestClass, null),
                     document.getElementById('root')
                 );
             }
+
         </script>
         <div id='root'>
         </div>

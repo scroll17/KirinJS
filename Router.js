@@ -6,7 +6,7 @@ class Router {
             search: window.location.search,
             hash: window.location.hash,
             state: '{}'
-        }
+        };
 
         this._work = workWithOriginalLocation;
 
@@ -61,7 +61,7 @@ class Router {
                 if(!paths.includes(p)){
                     response[p] = obj[p]
                 }
-            })
+            });
         return response;
     }
 
@@ -86,7 +86,7 @@ class Router {
                 let value = obj[p];
 
                 this[p] = value;
-            })
+            });
 
         return this._omit(this, this._privateFields);
     }
@@ -123,7 +123,7 @@ class Router {
 
         window.addEventListener('load', function(){
             this.location.state = this._getStateFromStorage();
-        }.bind(this))
+        }.bind(this));
 
         if(callback){
             window.addEventListener('load', callback.bind(this))
@@ -163,8 +163,8 @@ class Router {
 
     go(n){
         if(n < 0 && (this._current + n) >= 0){
-            this._current = this._current + n; 
-            
+            this._current = this._current + n;
+
             this._setNewHref(
                 this._history[this._current].href
             );
@@ -176,7 +176,7 @@ class Router {
             }
         }
         if(n > 0 && (this._current + n) <= this._length - 1){
-            this._current = this._current + n; 
+            this._current = this._current + n;
 
             this._setNewHref(
                 this._history[this._current].href
