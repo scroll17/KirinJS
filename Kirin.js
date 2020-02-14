@@ -85,20 +85,23 @@ function DOMElement(){
 }
 DOMElement.add = function (type) {
     function _set(type) {
-        DOMElement[type] = (child, props = null) => {
-            if(Array.isArray(child)){
-                return Kirin.createElement(type, props, ...child)
-            } else {
-                return Kirin.createElement(type, props, child)
+        Object.defineProperty(DOMElement, type, {
+            enumerable: true,
+            value: (child, props = null) => {
+                if(Array.isArray(child)){
+                    return Kirin.createElement(type, props, ...child)
+                } else {
+                    return Kirin.createElement(type, props, child)
+                }
             }
-        }
+        })
     }
 
     if(type){
         if(Array.isArray(type)){
             type.forEach(t => _set(t));
         } else {
-            _set(t);
+            _set(type);
         }
     }
 };
@@ -110,7 +113,9 @@ function createDOMComponent(elemConfig) {
     if(typeOfFunction(type) === 'class'){
         el = disassembleComponent(elemConfig);
     } else if(typeOfFunction(type) === 'function'){
-        el = type(props);
+        el = createDOMComponent(
+            type(props)
+        );
     } else {
         el = document.createElement(type);
 
@@ -148,7 +153,11 @@ function createDOMComponent(elemConfig) {
     return el;
 }
 createDOMComponent.mount = function (el, container) {
-    container.appendChild(el)
+    if(container){
+        container.appendChild(el)
+    } else {
+        Kirin._rootContainer.appendChild(el)
+    }
 };
 
 /*lib*/
@@ -159,7 +168,7 @@ const Kirin = {
             props: props || {}
         };
 
-        if (children[0]) {
+        if (children.length) {
             element.children = children;
         }
 
@@ -199,7 +208,14 @@ const Kirin = {
             } else {
                 this.state = conf;
             }
-            //Constructor.prototype.render()
+
+            console.log('this.render()', this.render());
+
+            Kirin.clearRoot()
+            Kirin.render(
+                this.render(),
+                document.getElementById('root')
+            )
         };
 
         Constructor.isClass = true;
@@ -207,7 +223,12 @@ const Kirin = {
     },
     DOMElement,
     render(element, container){
+        Kirin._rootContainer = container;
+
         let el = createDOMComponent(element);
         return createDOMComponent.mount(el, container)
+    },
+    clearRoot(){
+        Kirin._rootContainer.childNodes.forEach(child => child.remove());
     }
 };
